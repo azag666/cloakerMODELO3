@@ -1,305 +1,162 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
-
 <head>
-
-  <meta charset="UTF-8" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <title>Redirecionando...</title>
-
-
-
-  <script>
-
-    !function(f,b,e,v,n,t,s){
-
-      if(f.fbq)return;n=f.fbq=function(){
-
-        n.callMethod? n.callMethod.apply(n,arguments):n.queue.push(arguments)
-
-      };
-
-      if(!f._fbq)f._fbq=n;
-
-      n.push=n;n.loaded=!0;n.version='2.0';
-
-      n.queue=[];
-
-      t=b.createElement(e);t.async=!0;
-
-      t.src='https://connect.facebook.net/en_US/fbevents.js';
-
-      s=b.getElementsByTagName(e)[0];
-
-      s.parentNode.insertBefore(t,s)
-
-    }(window, document,'script');
-
-    fbq('init', '2157896137958065'); // Seu Pixel ID. Já está preenchido.
-
-    fbq('track', 'PageView');
-
-  </script>
-
-  <noscript>
-
-    <img height="1" width="1" style="display:none"
-
-      src="https://www.facebook.com/tr?id=2157896137958065&ev=PageView&noscript=1"/>
-
-  </noscript>
-
-  <script>
-
-    // URL da sua API do Google Apps Script para registrar cliques
-
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzkp60Zvt_8_SzBH-atrhz4Qqwuf1rm9btt17NIqPcbsFD-hPQKg7Gau7a-6XgiT7gj4g/exec';
-
-    const TELEGRAM_USERNAME = 'Mariaduds_bot'; // <--- SEU NOME DE USUÁRIO DO BOT TELEGRAM AQUI!
-
-
-
-    const botKeywords = [
-
-      'facebookexternalhit', 'facebot', 'twitterbot', 'linkedinbot',
-
-      'slackbot', 'telegrambot', 'whatsapp', 'discordbot',
-
-      'googlebot', 'bingbot', 'crawler', 'spider', 'preview',
-
-      'httpclient', 'fetch'
-
-    ];
-
-
-
-    function isBot() {
-
-      const ua = navigator.userAgent.toLowerCase();
-
-      return botKeywords.some(bot => ua.includes(bot));
-
-    }
-
-
-
-    function isMobile() {
-
-      return /android|iphone|ipad|ipod/i.test(navigator.userAgent);
-
-    }
-
-
-
-    function isTouchDevice() {
-
-      return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-
-    }
-
-
-
-    function getCookie(name) {
-
-      const value = `; ${document.cookie}`;
-
-      const parts = value.split(`; ${name}=`);
-
-      if (parts.length === 2) return parts.pop().split(';').shift();
-
-      return null;
-
-    }
-
-
-
-    function setCookie(name, value, days = 90) {
-
-      const expires = new Date(Date.now() + days * 864e5).toUTCString();
-
-      document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`;
-
-    }
-
-
-
-    function getFbclid() {
-
-      const urlParams = new URLSearchParams(window.location.search);
-
-      return urlParams.get('fbclid');
-
-    }
-
-
-
-    function generateFbp() {
-
-      const timestamp = Date.now();
-
-      const random = Math.floor(Math.random() * 1e16);
-
-      return `fb.1.${timestamp}.${random}`;
-
-    }
-
-
-
-    function ensureFbp() {
-
-      let fbp = getCookie('_fbp');
-
-      if (!fbp) {
-
-        fbp = generateFbp();
-
-        setCookie('_fbp', fbp);
-
-      }
-
-      return fbp;
-
-    }
-
-
-
-    function ensureFbc(fbclid) {
-
-      const current = getCookie('_fbc');
-
-      if (current && current.endsWith(fbclid)) return current;
-
-
-
-      const timestamp = Date.now();
-
-      const fbc = `fb.1.${timestamp}.${fbclid}`;
-
-      setCookie('_fbc', fbc);
-
-      return fbc;
-
-    }
-
-
-
-    // Função atualizada para registrar o clique na sua API do Google Apps Script
-
-    async function registrarClick(fbclid, fbp) {
-
-      try {
-
-        const response = await fetch(API_URL, {
-
-          method: 'POST',
-
-          headers: {
-
-            'Content-Type': 'application/json'
-
-            // 'x-api-key' não é mais necessário aqui para o Google Apps Script
-
-          },
-
-          body: JSON.stringify({
-
-            fbclid,
-
-            fbp,
-
-            referer: document.referrer || '' // Inclui o referer
-
-          })
-
-        });
-
-
-
-        const data = await response.json();
-
-        if (data.status === 'success') {
-
-          return data.click_id;
-
-        } else {
-
-          console.error('Erro ao registrar click (API response):', data.message);
-
-          return null;
-
-        }
-
-      } catch (error) {
-
-        console.error('Erro ao registrar click (network error):', error);
-
-        return null;
-
-      }
-
-    }
-
-
-
-    (async function main() {
-
-      // Verifica se é bot ou não é dispositivo móvel com toque
-
-      if (isBot() || !(isMobile() && isTouchDevice())) {
-
-        window.location.replace('https://fernandatamires.netlify.app/'); // Redireciona para página neutra
-
-        return;
-
-      }
-
-
-
-      const fbclid = getFbclid();
-
-      if (!fbclid) {
-
-        window.location.replace('https://fernandatamires.netlify.app/'); // Redireciona se não houver fbclid
-
-        return;
-
-      }
-
-
-
-      const fbp = ensureFbp(); // Garante que o _fbp exista e seja salvo no cookie
-
-      ensureFbc(fbclid); // Garante que o _fbc exista e seja salvo no cookie
-
-
-
-      const click_id = await registrarClick(fbclid, fbp); // Registra o clique e obtém o click_id
-
-
-
-      if (click_id) {
-
-        const url = `https://t.me/${TELEGRAM_USERNAME}?start=${click_id}`;
-
-        window.location.replace(url); // Redireciona para o Telegram com o click_id
-
-      } else {
-
-        window.location.replace('https://fernandatamires.netlify.app/'); // Redireciona fallback em caso de erro
-
-      }
-
-    })();
-
-  </script>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Redirecionando...</title>
+
+  <script>
+    // Script do Pixel do Facebook (mantido)
+    !function(f,b,e,v,n,t,s){
+      if(f.fbq)return;n=f.fbq=function(){
+        n.callMethod? n.callMethod.apply(n,arguments):n.queue.push(arguments)
+      };
+      if(!f._fbq)f._fbq=n;
+      n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];
+      t=b.createElement(e);t.async=!0;
+      t.src='https://connect.facebook.net/en_US/fbevents.js';
+      s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)
+    }(window, document,'script');
+    fbq('init', '2157896137958065'); // Seu Pixel ID. Já está preenchido.
+    fbq('track', 'PageView');
+  </script>
+  <noscript>
+    <img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=2157896137958065&ev=PageView&noscript=1"/>
+  </noscript>
+  <script>
+    // URL da sua API do Google Apps Script para registrar cliques
+    // MUITO IMPORTANTE: VERIFIQUE SE ESTA URL ESTÁ CORRETA E É A DA SUA IMPLANTAÇÃO MAIS RECENTE DO GOOGLE APPS SCRIPT!
+    // ELA DEVE TERMINAR COM '/exec?path=registerClick'
+    const API_URL = 'https://script.google.com/macros/s/AKfycbx0i38S4HIyQUQxO3R7GL2EK804dqw9LeBCvS9jLJBAVPRcH3SwSRgMhZ6AP35HFl9ElQ/exec?path=registerClick'; // ATUALIZE AQUI COM A URL DA SUA IMPLANTAÇÃO
+
+    const TELEGRAM_USERNAME = 'Mariaduds_bot'; // <--- SEU NOME DE USUÁRIO DO BOT TELEGRAM AQUI!
+
+    // As funções de detecção de bot e dispositivo (isBot, isMobile, isTouchDevice)
+    // e as palavras-chave foram REMOVIDAS para garantir que a página capture
+    // e redirecione TODOS os usuários, sejam mobile ou desktop, com ou sem fbclid.
+
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+
+    function setCookie(name, value, days = 90) {
+      const expires = new Date(Date.now() + days * 864e5).toUTCString();
+      document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`;
+    }
+
+    function getFbclid() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const fbclid_val = urlParams.get('fbclid');
+      console.log('FBCLID encontrado na URL:', fbclid_val); // Log para depuração
+      return fbclid_val;
+    }
+
+    function generateFbp() {
+      const timestamp = Date.now();
+      const random = Math.floor(Math.random() * 1e16);
+      return `fb.1.${timestamp}.${random}`;
+    }
+
+    function ensureFbp() {
+      let fbp = getCookie('_fbp');
+      if (!fbp) {
+        fbp = generateFbp();
+        setCookie('_fbp', fbp);
+        console.log('Novo _fbp gerado e salvo:', fbp); // Log para depuração
+      } else {
+        console.log('_fbp existente:', fbp); // Log para depuração
+      }
+      return fbp;
+    }
+
+    function ensureFbc(fbclid) {
+      const current = getCookie('_fbc');
+      if (current && current.endsWith(fbclid)) {
+        console.log('_fbc existente e válido:', current); // Log para depuração
+        return current;
+      }
+
+      const timestamp = Date.now();
+      const fbc = `fb.1.${timestamp}.${fbclid}`;
+      setCookie('_fbc', fbc);
+      console.log('Novo _fbc gerado e salvo:', fbc); // Log para depuração
+      return fbc;
+    }
+
+    // Função para registrar o clique na sua API do Google Apps Script
+    async function registrarClick(fbclid, fbp) {
+      console.log('Iniciando registro de clique...'); // Log para depuração
+      console.log('Dados enviados para API:', { fbclid, fbp, referer: document.referrer || '' }); // Log para depuração
+      console.log('URL da API sendo usada:', API_URL); // NOVO LOG: Mostra a URL exata da API
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            fbclid,
+            fbp,
+            referer: document.referrer || ''
+          })
+        });
+
+        const data = await response.json();
+        console.log('Resposta da API do Apps Script:', data); // Log da resposta completa
+
+        if (data.status === 'success') {
+          console.log('Click registrado com sucesso. Click ID:', data.click_id); // Log de sucesso
+          return data.click_id;
+        } else {
+          console.error('Erro ao registrar click (API response):', data.message);
+          return null;
+        }
+      } catch (error) {
+        // Este catch já existe e é o que está capturando o "Failed to fetch"
+        console.error('Erro ao registrar click (network error):', error);
+        return null;
+      }
+    }
+
+    (async function main() {
+      console.log('Iniciando script principal...'); // Log para depuração
+
+      const fbclid = getFbclid();
+      // O fbclid pode ser null se o usuário não vier de uma campanha do Facebook,
+      // mas ainda tentaremos registrar o clique e redirecionar.
+
+      const fbp = ensureFbp(); // Garante que o _fbp exista e seja salvo no cookie
+      ensureFbc(fbclid); // Garante que o _fbc exista e seja salvo no cookie
+
+      console.log('Chamando registrarClick com fbclid:', fbclid, 'e fbp:', fbp); // Log para depuração
+      const click_id = await registrarClick(fbclid, fbp); // Registra o clique e obtém o click_id
+
+      let redirectUrl;
+      if (click_id) {
+        // Se um click_id foi obtido com sucesso, redireciona para o Telegram com ele.
+        redirectUrl = `https://t.me/${TELEGRAM_USERNAME}?start=${click_id}`;
+        console.log('Click ID obtido. Redirecionando para Telegram com click_id:', redirectUrl); // Log para depuração
+      } else {
+        // Se não houver click_id (ex: erro na API do Apps Script ou fbclid ausente),
+        // ainda redireciona para o Telegram, mas sem o parâmetro 'start'.
+        redirectUrl = `https://t.me/${TELEGRAM_USERNAME}`;
+        console.log('Erro ao obter Click ID. Redirecionando para Telegram sem click_id:', redirectUrl); // Log para depuração
+      }
+      window.location.replace(redirectUrl); // Redireciona para o Telegram
+    })();
+  </script>
 </head>
-
 <body>
-
+  <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+    <p>Redirecionando você...</p>
+    <!-- Opcional: Adicionar um pequeno spinner CSS aqui -->
+  </div>
 </body>
-
 </html>
