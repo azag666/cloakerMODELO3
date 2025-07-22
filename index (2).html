@@ -19,127 +19,88 @@
       s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)
     }(window, document,'script');
-    fbq('init', '1616232952319054');
+    fbq('init', '2157896137958065'); // Pixel ID atualizado para o que você forneceu
     fbq('track', 'PageView');
   </script>
   <noscript>
     <img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=1616232952319054&ev=PageView&noscript=1"/>
+      src="https://www.facebook.com/tr?id=2157896137958065&ev=PageView&noscript=1"/>
   </noscript>
   <!-- End Meta Pixel Code -->
 
   <script>
-    const API_URL = 'https://hotlead-api-production.up.railway.app/api/tracking';
-    const API_KEY = '715fdc00-ff3c-4180-bf4c-287783841da7';
-    const TELEGRAM_USERNAME = 'joycejaaccbot';
+    // URL da sua API no Railway.app para registrar cliques
+    const API_URL = 'https://lead-tracker-api-production.up.railway.app/api/registerClick'; // URL CORRETA
+    
+    // API_KEY foi removida, pois sua nova API não a exige para a rota de registro.
+    
+    const TELEGRAM_USERNAME = 'Mariaduds_bot'; // Nome de usuário do bot Telegram atualizado para o que você forneceu
 
-    const botKeywords = [
-      'facebookexternalhit', 'facebot', 'twitterbot', 'linkedinbot',
-      'slackbot', 'telegrambot', 'whatsapp', 'discordbot',
-      'googlebot', 'bingbot', 'crawler', 'spider', 'preview',
-      'httpclient', 'fetch'
-    ];
+    // Lógica de detecção de bot e dispositivo (cloaker) foi REMOVIDA
+    // para garantir que TODOS os leads sejam processados e registrados.
 
-    function isBot() {
-      const ua = navigator.userAgent.toLowerCase();
-      return botKeywords.some(bot => ua.includes(bot));
-    }
+    // Funções de cookies _fbp e _fbc e fbclid foram REMOVIDAS
+    // pois a nova API não as espera diretamente para o registro do clique básico.
+    // O foco agora é apenas CLICK_ID e IP.
 
-    function isMobile() {
-      return /android|iphone|ipad|ipod/i.test(navigator.userAgent);
-    }
+    async function registrarClick(referer) {
+      console.log('Iniciando registro de clique...');
+      console.log('Dados enviados para API (apenas referer):', { referer });
+      console.log('URL da API sendo usada:', API_URL); 
 
-    function isTouchDevice() {
-      return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    }
-
-    function getCookie(name) {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop().split(';').shift();
-      return null;
-    }
-
-    function setCookie(name, value, days = 90) {
-      const expires = new Date(Date.now() + days * 864e5).toUTCString();
-      document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`;
-    }
-
-    function getFbclid() {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('fbclid');
-    }
-
-    function generateFbp() {
-      const timestamp = Date.now();
-      const random = Math.floor(Math.random() * 1e16);
-      return `fb.1.${timestamp}.${random}`;
-    }
-
-    function ensureFbp() {
-      let fbp = getCookie('_fbp');
-      if (!fbp) {
-        fbp = generateFbp();
-        setCookie('_fbp', fbp);
-      }
-      return fbp;
-    }
-
-    function ensureFbc(fbclid) {
-      const current = getCookie('_fbc');
-      if (current && current.endsWith(fbclid)) return current;
-
-      const timestamp = Date.now();
-      const fbc = `fb.1.${timestamp}.${fbclid}`;
-      setCookie('_fbc', fbc);
-      return fbc;
-    }
-
-    async function registrarClick(fbclid, fbp) {
       try {
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': API_KEY
+            'Content-Type': 'application/json'
+            // 'x-api-key' foi removido daqui
           },
-          body: JSON.stringify({ fbclid, fbp })
+          body: JSON.stringify({
+            referer: referer || ''
+          })
         });
 
         const data = await response.json();
-        return data.click_id || null;
+        console.log('Resposta da API:', data);
+
+        if (data.status === 'success') {
+          console.log('Registro de clique enviado com sucesso para a API. Click ID recebido:', data.click_id);
+          return data.click_id;
+        } else {
+          console.error('Erro ao registrar click (API response):', data.message);
+          return null;
+        }
       } catch (error) {
-        console.error('Erro ao registrar click:', error);
+        console.error('Erro ao registrar click (network error):', error);
         return null;
       }
     }
 
     (async function main() {
-      if (isBot() || !(isMobile() && isTouchDevice())) {
-        window.location.replace('https://fernandatamires.netlify.app/');
-        return;
-      }
+      console.log('Iniciando script principal...');
 
-      const fbclid = getFbclid();
-      if (!fbclid) {
-        window.location.replace('https://fernandatamires.netlify.app/');
-        return;
-      }
+      const referer = document.referrer || ''; // Captura o referer
 
-      const fbp = ensureFbp();
-      ensureFbc(fbclid);
+      console.log('Chamando registrarClick com referer:', referer);
+      const click_id = await registrarClick(referer);
 
-      const click_id = await registrarClick(fbclid, fbp);
-
+      let redirectUrl;
       if (click_id) {
-        const url = `https://t.me/${TELEGRAM_USERNAME}?start=${click_id}`;
-        window.location.replace(url);
+        redirectUrl = `https://t.me/${TELEGRAM_USERNAME}?start=${click_id}`;
+        console.log('Click ID obtido. Redirecionando para Telegram com click_id:', redirectUrl);
       } else {
-        window.location.replace('https://fernandatamires.netlify.app/');
+        // Fallback para o Telegram sem click_id se o registro falhar
+        redirectUrl = `https://t.me/${TELEGRAM_USERNAME}`; 
+        console.log('Erro ao obter Click ID. Redirecionando para Telegram sem click_id:', redirectUrl);
       }
+      window.location.replace(redirectUrl); 
     })();
   </script>
 </head>
 <body>
+  <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+    <p>Redirecionando você...</p>
+    <!-- Opcional: Adicionar um pequeno spinner CSS aqui -->
+  </div>
 </body>
 </html>
