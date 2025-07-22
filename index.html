@@ -5,44 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Redirecionando...</title>
 
-  <!-- Meta Pixel Code -->
-  <script>
-    !function(f,b,e,v,n,t,s){
-      if(f.fbq)return;n=f.fbq=function(){
-        n.callMethod? n.callMethod.apply(n,arguments):n.queue.push(arguments)
-      };
-      if(!f._fbq)f._fbq=n;
-      n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];
-      t=b.createElement(e);t.async=!0;
-      t.src='https://connect.facebook.net/en_US/fbevents.js';
-      s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)
-    }(window, document,'script');
-    fbq('init', '2157896137958065'); // Pixel ID atualizado para o que você forneceu
-    fbq('track', 'PageView');
-  </script>
-  <noscript>
-    <img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=2157896137958065&ev=PageView&noscript=1"/>
-  </noscript>
-  <!-- End Meta Pixel Code -->
-
   <script>
     // URL da sua API no Railway.app para registrar cliques
-    const API_URL = 'https://lead-tracker-api-production.up.railway.app/api/registerClick'; // URL CORRETA
-    
-    // API_KEY foi removida, pois sua nova API não a exige para a rota de registro.
-    
-    const TELEGRAM_USERNAME = 'Mariaduds_bot'; // Nome de usuário do bot Telegram atualizado para o que você forneceu
+    // MUITO IMPORTANTE: SUBSTITUA ESTA URL PELA URL DA SUA API IMPLANTADA NO RAILWAY.APP!
+    // Exemplo: https://sua-api-no-railway.up.railway.app/api/registerClick
+    const API_URL = 'https://sua-api-no-railway.up.railway.app/api/registerClick'; // COLOQUE A URL DA SUA API AQUI!
 
-    // Lógica de detecção de bot e dispositivo (cloaker) foi REMOVIDA
-    // para garantir que TODOS os leads sejam processados e registrados.
+    const TELEGRAM_USERNAME = 'Mariaduds_bot'; // <--- SEU NOME DE USUÁRIO DO BOT TELEGRAM AQUI!
 
-    // Funções de cookies _fbp e _fbc e fbclid foram REMOVIDAS
-    // pois a nova API não as espera diretamente para o registro do clique básico.
-    // O foco agora é apenas CLICK_ID e IP.
+    // Funções e scripts relacionados ao Pixel do Facebook, cookies _fbp/_fbc,
+    // e detecção de bot/dispositivo foram REMOVIDOS para simplificar o fluxo.
 
+    // Função para registrar o clique na sua API Node.js/Express
     async function registrarClick(referer) {
       console.log('Iniciando registro de clique...');
       console.log('Dados enviados para API (apenas referer):', { referer });
@@ -53,7 +27,6 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
-            // 'x-api-key' foi removido daqui
           },
           body: JSON.stringify({
             referer: referer || ''
@@ -65,14 +38,14 @@
 
         if (data.status === 'success') {
           console.log('Registro de clique enviado com sucesso para a API. Click ID recebido:', data.click_id);
-          return data.click_id;
+          return data.click_id; // Retorna o click_id recebido da sua API (ex: "/start 000001")
         } else {
           console.error('Erro ao registrar click (API response):', data.message);
-          return null;
+          return null; 
         }
       } catch (error) {
         console.error('Erro ao registrar click (network error):', error);
-        return null;
+        return null; 
       }
     }
 
@@ -82,15 +55,24 @@
       const referer = document.referrer || ''; // Captura o referer
 
       console.log('Chamando registrarClick com referer:', referer);
-      const click_id = await registrarClick(referer);
+      const click_id_from_api = await registrarClick(referer); // Obtém o click_id da sua API (ex: "/start 000001")
 
       let redirectUrl;
-      if (click_id) {
-        redirectUrl = `https://t.me/${TELEGRAM_USERNAME}?start=${click_id}`;
-        console.log('Click ID obtido. Redirecionando para Telegram com click_id:', redirectUrl);
+      if (click_id_from_api) {
+        // CORREÇÃO: Remove o prefixo "/start " do click_id ANTES de codificar para a URL do Telegram.
+        let cleanedClickId = click_id_from_api;
+        if (cleanedClickId.startsWith('/start ')) {
+            cleanedClickId = cleanedClickId.substring('/start '.length);
+        }
+        // Remove quaisquer espaços extras que possam ter sobrado
+        cleanedClickId = cleanedClickId.trim(); 
+
+        // Codifica o click_id numérico para URL antes de adicioná-lo ao link do Telegram
+        const encodedClickId = encodeURIComponent(cleanedClickId);
+        redirectUrl = `https://t.me/${TELEGRAM_USERNAME}?start=${encodedClickId}`;
+        console.log('Click ID obtido. Redirecionando para Telegram com click_id (codificado):', redirectUrl);
       } else {
-        // Fallback para o Telegram sem click_id se o registro falhar
-        redirectUrl = `https://t.me/${TELEGRAM_USERNAME}`; 
+        redirectUrl = `https://t.me/${TELEGRAM_USERNAME}`; // Fallback sem click_id
         console.log('Erro ao obter Click ID. Redirecionando para Telegram sem click_id:', redirectUrl);
       }
       window.location.replace(redirectUrl); 
