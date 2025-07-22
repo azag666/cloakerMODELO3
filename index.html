@@ -11,7 +11,7 @@
       if(f.fbq)return;n=f.fbq=function(){
         n.callMethod? n.callMethod.apply(n,arguments):n.queue.push(arguments)
       };
-      if(!f._fbq)f._fbq=n;
+      if(!f._fbq)f._._fbq=n;
       n.push=n;n.loaded=!0;n.version='2.0';
       n.queue=[];
       t=b.createElement(e);t.async=!0;
@@ -30,7 +30,8 @@
     // URL da sua API do Google Apps Script para registrar cliques
     // MUITO IMPORTANTE: VERIFIQUE SE ESTA URL ESTÁ CORRETA E É A DA SUA IMPLANTAÇÃO MAIS RECENTE DO GOOGLE APPS SCRIPT!
     // ELA DEVE TERMINAR COM '/exec?path=registerClick'
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyssCFbT43-bmRbmCGRYO5HBPmmyrWjg0OTUa3uKknRQ8mWI0R1ArEgMaMq0yAV5mq16A/exec?path=registerClick'; // ATUALIZE AQUI COM A URL DA SUA IMPLANTAÇÃO
+    // ATUALIZADO para o NOVO LINK fornecido:
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzb0C4VryfOAjkDBeBqLUuVPLYQjteyI0ljgNo1UB9kzdn3_MDcPXUegFVTO6jVlC4ARw/exec?path=registerClick'; 
 
     const TELEGRAM_USERNAME = 'Mariaduds_bot'; // <--- SEU NOME DE USUÁRIO DO BOT TELEGRAM AQUI!
 
