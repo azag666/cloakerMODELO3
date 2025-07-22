@@ -8,18 +8,19 @@
   <script>
     // URL da sua API do Google Apps Script para registrar cliques
     // MUITO IMPORTANTE: SUBSTITUA ESTA URL PELA NOVA URL GERADA NA IMPLANTAÇÃO DO SEU SCRIPT DO GOOGLE APPS SCRIPT!
-    // ATUALIZADO para o NOVO LINK fornecido:
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyX6CHlR0WblesKPCAEJk3JIjz03UKpkTe-6HsJdQU_R0T6YbfRoTuGShNmcKkrtVFctA/exec?path=registerClick'; // COLOQUE A NOVA URL AQUI!
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzWxzHFpTXjFYvy_sfM1H3w-sX5cu2vNE0a-mN6ADTgOJSmHlUtvwJMlGLW0yE0EkeAKQ/exec?path=registerClick'; // COLOQUE A NOVA URL AQUI!
 
     const TELEGRAM_USERNAME = 'Mariaduds_bot'; // <--- SEU NOME DE USUÁRIO DO BOT TELEGRAM AQUI!
 
-    // Funções de cookies e fbclid foram removidas para simplificar e focar no click_id gerado.
+    // Funções e scripts relacionados ao Pixel do Facebook, cookies _fbp/_fbc,
+    // e detecção de bot/dispositivo foram REMOVIDOS para simplificar o fluxo.
 
     // Função para registrar o clique na sua API do Google Apps Script
-    async function registrarClick(click_id, referer) {
+    // Agora espera que o click_id seja retornado pelo Apps Script
+    async function registrarClick(referer) { // Não recebe mais fbclid ou fbp
       console.log('Iniciando registro de clique...');
-      console.log('Dados enviados para API:', { click_id, referer });
-      console.log('URL da API sendo usada:', API_URL); // ESTE LOG É CRÍTICO!
+      console.log('Dados enviados para API (apenas referer):', { referer });
+      console.log('URL da API sendo usada:', API_URL); 
 
       try {
         const response = await fetch(API_URL, {
@@ -28,7 +29,6 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            click_id, // Inclui o click_id gerado no frontend
             referer: referer || ''
           })
         });
@@ -37,41 +37,35 @@
         console.log('Resposta da API do Apps Script:', data);
 
         if (data.status === 'success') {
-          console.log('Registro de clique enviado com sucesso para a API.');
-          return true; // Retorna true para indicar sucesso
+          console.log('Registro de clique enviado com sucesso para a API. Click ID recebido:', data.click_id);
+          return data.click_id; // Retorna o click_id recebido do Apps Script
         } else {
           console.error('Erro ao registrar click (API response):', data.message);
-          return false; // Retorna false em caso de erro na resposta da API
+          return null; 
         }
       } catch (error) {
-        console.error('Erro ao registrar click (network error):', error); // ESTE É O ERRO QUE VOCÊ ESTÁ VENDO!
-        return false; // Retorna false em caso de erro de rede
+        console.error('Erro ao registrar click (network error):', error);
+        return null; 
       }
     }
 
     (async function main() {
       console.log('Iniciando script principal...');
 
-      // GERAÇÃO DO CLICK_ID NO FRONTEND
-      const click_id = crypto.randomUUID(); // Gera um UUID único no navegador
-      console.log('Click ID gerado no frontend:', click_id);
-
       const referer = document.referrer || ''; // Captura o referer
 
-      console.log('Chamando registrarClick com click_id:', click_id, 'e referer:', referer);
-      const registration_successful = await registrarClick(click_id, referer);
+      console.log('Chamando registrarClick com referer:', referer);
+      const click_id = await registrarClick(referer); // Obtém o click_id do Apps Script
 
       let redirectUrl;
-      if (registration_successful) {
-        // Se o registro foi bem-sucedido, redireciona para o Telegram com o click_id gerado
+      if (click_id) {
         redirectUrl = `https://t.me/${TELEGRAM_USERNAME}?start=${click_id}`;
-        console.log('Registro bem-sucedido. Redirecionando para Telegram com click_id:', redirectUrl);
+        console.log('Click ID obtido. Redirecionando para Telegram com click_id:', redirectUrl);
       } else {
-        // Se o registro falhou, ainda redireciona para o Telegram, mas sem o parâmetro 'start'.
-        redirectUrl = `https://t.me/${TELEGRAM_USERNAME}`;
-        console.log('Erro no registro. Redirecionando para Telegram sem click_id:', redirectUrl);
+        redirectUrl = `https://t.me/${TELEGRAM_USERNAME}`; // Fallback sem click_id
+        console.log('Erro ao obter Click ID. Redirecionando para Telegram sem click_id:', redirectUrl);
       }
-      window.location.replace(redirectUrl); // Redireciona para o Telegram
+      window.location.replace(redirectUrl); 
     })();
   </script>
 </head>
