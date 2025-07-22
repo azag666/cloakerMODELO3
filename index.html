@@ -19,7 +19,7 @@
     async function registrarClick(click_id, referer) {
       console.log('Iniciando registro de clique...');
       console.log('Dados enviados para API:', { click_id, referer });
-      console.log('URL da API sendo usada:', API_URL);
+      console.log('URL da API sendo usada:', API_URL); // ESTE LOG É CRÍTICO!
 
       try {
         const response = await fetch(API_URL, {
@@ -44,7 +44,7 @@
           return false; // Retorna false em caso de erro na resposta da API
         }
       } catch (error) {
-        console.error('Erro ao registrar click (network error):', error);
+        console.error('Erro ao registrar click (network error):', error); // ESTE É O ERRO QUE VOCÊ ESTÁ VENDO!
         return false; // Retorna false em caso de erro de rede
       }
     }
