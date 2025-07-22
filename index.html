@@ -36,12 +36,18 @@
         const data = await response.json();
         console.log('Resposta da API:', data);
 
-        if (data.status === 'success') {
-          console.log('Registro de clique enviado com sucesso para a API. Click ID recebido:', data.click_id);
-          return data.click_id; // Retorna o click_id recebido da sua API (ex: "/start 000001")
+        if (response.ok) { // Verifica se a resposta HTTP foi bem-sucedida (status 2xx)
+          if (data.status === 'success') {
+            console.log('Registro de clique enviado com sucesso para a API. Click ID recebido:', data.click_id);
+            return data.click_id; // Retorna o click_id recebido da sua API (ex: "/start 000001")
+          } else {
+            console.error('Erro ao registrar click (API response):', data.message);
+            return null; 
+          }
         } else {
-          console.error('Erro ao registrar click (API response):', data.message);
-          return null; 
+          console.error('Erro na requisição HTTP para a API:', response.status, response.statusText);
+          console.error('Resposta de erro da API:', data);
+          return null;
         }
       } catch (error) {
         console.error('Erro ao registrar click (network error):', error);
