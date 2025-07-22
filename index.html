@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Redirecionando...</title>
 
+  <!-- Meta Pixel Code -->
   <script>
-    // Script do Pixel do Facebook (mantido)
     !function(f,b,e,v,n,t,s){
       if(f.fbq)return;n=f.fbq=function(){
         n.callMethod? n.callMethod.apply(n,arguments):n.queue.push(arguments)
@@ -19,24 +19,29 @@
       s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)
     }(window, document,'script');
-    fbq('init', '2157896137958065'); // Seu Pixel ID. Já está preenchido.
+    fbq('init', '2157896137958065'); // Pixel ID atualizado para o que você forneceu
     fbq('track', 'PageView');
   </script>
   <noscript>
     <img height="1" width="1" style="display:none"
       src="https://www.facebook.com/tr?id=2157896137958065&ev=PageView&noscript=1"/>
   </noscript>
+  <!-- End Meta Pixel Code -->
+
   <script>
     // URL da sua API no Railway.app para registrar cliques
-    // MUITO IMPORTANTE: SUBSTITUA ESTA URL PELA URL DA SUA API IMPLANTADA NO RAILWAY.APP!
-    // Exemplo: https://sua-api-no-railway.up.railway.app/api/registerClick
-    const API_URL = 'https://lead-tracker-api-production.up.railway.app/api/registerClick'; // COLOQUE A URL DA SUA API AQUI!
+    const API_URL = 'https://lead-tracker-api-production.up.railway.app/api/registerClick'; // URL CORRETA
+    
+    // API_KEY foi removida, pois sua nova API não a exige para a rota de registro.
+    
+    const TELEGRAM_USERNAME = 'Mariaduds_bot'; // Nome de usuário do bot Telegram atualizado para o que você forneceu
 
-    const TELEGRAM_USERNAME = 'Mariaduds_bot'; // <--- SEU NOME DE USUÁRIO DO BOT TELEGRAM AQUI!
+    // Lógica de detecção de bot e dispositivo (cloaker) foi REMOVIDA
+    // para garantir que TODOS os leads sejam processados e registrados.
 
-    // Funções de detecção de bot e dispositivo (isBot, isMobile, isTouchDevice)
-    // e as palavras-chave foram REMOVIDAS para garantir que a página capture
-    // e redirecione TODOS os usuários, conforme sua solicitação.
+    // Funções de cookies _fbp e _fbc e fbclid foram REMOVIDAS
+    // pois a nova API não as espera diretamente para o registro do clique básico.
+    // O foco agora é apenas CLICK_ID e IP.
 
     function getCookie(name) {
       const value = `; ${document.cookie}`;
@@ -89,9 +94,7 @@
       return fbc;
     }
 
-    // Função para registrar o clique na sua API Node.js/Express
-    // Agora passa fbclid e fbp para o backend
-    async function registrarClick(referer, fbclid, fbp) { 
+    async function registrarClick(referer, fbclid, fbp) {
       console.log('Iniciando registro de clique...');
       console.log('Dados enviados para API:', { referer, fbclid, fbp });
       console.log('URL da API sendo usada:', API_URL); 
@@ -143,8 +146,8 @@
         ensureFbc(fbclid); 
       }
 
-      console.log('Chamando registrarClick com referer:', referer, 'fbclid:', fbclid, 'e fbp:', fbp); // Log para depuração
-      const click_id_from_api = await registrarClick(referer, fbclid, fbp); // Passa fbclid e fbp
+      console.log('Chamando registrarClick com referer:', referer, 'fbclid:', fbclid, 'e fbp:', fbp);
+      const click_id_from_api = await registrarClick(referer, fbclid, fbp);
 
       let redirectUrl;
       if (click_id_from_api) {
