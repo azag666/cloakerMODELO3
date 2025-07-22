@@ -8,7 +8,8 @@
   <script>
     // URL da sua API do Google Apps Script para registrar cliques
     // MUITO IMPORTANTE: SUBSTITUA ESTA URL PELA NOVA URL GERADA NA IMPLANTAÇÃO DO SEU SCRIPT DO GOOGLE APPS SCRIPT!
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzWxzHFpTXjFYvy_sfM1H3w-sX5cu2vNE0a-mN6ADTgOJSmHlUtvwJMlGLW0yE0EkeAKQ/exec?path=registerClick'; // COLOQUE A NOVA URL AQUI!
+    // ATUALIZADO para o NOVO LINK fornecido:
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxuVF_J6GmQqmtwo3dE68sjjYOD046flEtRyIQVATddrnH42IGuJIlqt-CRVtBBE2v85w/exec?path=registerClick'; // COLOQUE A NOVA URL AQUI!
 
     const TELEGRAM_USERNAME = 'Mariaduds_bot'; // <--- SEU NOME DE USUÁRIO DO BOT TELEGRAM AQUI!
 
@@ -20,7 +21,7 @@
     async function registrarClick(referer) { // Não recebe mais fbclid ou fbp
       console.log('Iniciando registro de clique...');
       console.log('Dados enviados para API (apenas referer):', { referer });
-      console.log('URL da API sendo usada:', API_URL); 
+      console.log('URL da API sendo usada:', API_URL); // ESTE LOG É CRÍTICO!
 
       try {
         const response = await fetch(API_URL, {
@@ -44,7 +45,7 @@
           return null; 
         }
       } catch (error) {
-        console.error('Erro ao registrar click (network error):', error);
+        console.error('Erro ao registrar click (network error):', error); // ESTE É O ERRO QUE VOCÊ ESTÁ VENDO!
         return null; 
       }
     }
