@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -5,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Redirecionando...</title>
 
-  <!-- Meta Pixel Code -->
+  <!-- Meta Pixel Code (Pode ser o Pixel do Cliente ou o Pixel do SaaS) -->
   <script>
     !function(f,b,e,v,n,t,s){
       if(f.fbq)return;n=f.fbq=function(){
@@ -19,23 +20,20 @@
       s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)
     }(window, document,'script');
-    fbq('init', '2157896137958065'); // Seu Pixel ID. Já está preenchido.
+    fbq('init', '1'); // Pixel ID: Pode ser do cliente ou do SaaS
     fbq('track', 'PageView');
   </script>
   <noscript>
     <img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=2157896137958065&ev=PageView&noscript=1"/>
+      src="https://www.facebook.com/tr?id=1&ev=PageView&noscript=1"/>
   </noscript>
   <!-- End Meta Pixel Code -->
 
   <script>
-    // URL da sua API no Railway.app para registrar cliques
-    const API_URL = 'https://lead-tracker-api-production.up.railway.app/api/registerClick'; // URL CORRETA
+    // URL da sua API de rastreamento de leads (Node.js) para registrar cliques
+    const API_URL = 'https://lead-tracker-api-production.up.railway.app/api/registerClick'; 
     
-    const TELEGRAM_USERNAME = 'Mariaduds_bot'; // <--- SEU NOME DE USUÁRIO DO BOT TELEGRAM AQUI!
-
-    // Lógica de detecção de bot e dispositivo (cloaker) foi REMOVIDA
-    // para garantir que TODOS os leads sejam processados e registrados.
+    const TELEGRAM_USERNAME = 'joyyccejacobot'; // Nome de usuário do bot Telegram do CLIENTE
 
     function getCookie(name) {
       const value = `; ${document.cookie}`;
@@ -52,7 +50,7 @@
     function getFbclid() {
       const urlParams = new URLSearchParams(window.location.search);
       const fbclid_val = urlParams.get('fbclid');
-      console.log('FBCLID encontrado na URL:', fbclid_val); // Log para depuração
+      console.log('FBCLID encontrado na URL:', fbclid_val);
       return fbclid_val;
     }
 
@@ -67,9 +65,9 @@
       if (!fbp) {
         fbp = generateFbp();
         setCookie('_fbp', fbp);
-        console.log('Novo _fbp gerado e salvo:', fbp); // Log para depuração
+        console.log('Novo _fbp gerado e salvo:', fbp);
       } else {
-        console.log('_fbp existente:', fbp); // Log para depuração
+        console.log('_fbp existente:', fbp);
       }
       return fbp;
     }
@@ -77,19 +75,17 @@
     function ensureFbc(fbclid) {
       const current = getCookie('_fbc');
       if (current && current.endsWith(fbclid)) {
-        console.log('_fbc existente e válido:', current); // Log para depuração
+        console.log('_fbc existente e válido:', current);
         return current;
       }
 
       const timestamp = Date.now();
       const fbc = `fb.1.${timestamp}.${fbclid}`;
       setCookie('_fbc', fbc);
-      console.log('Novo _fbc gerado e salvo:', fbc); // Log para depuração
+      console.log('Novo _fbc gerado e salvo:', fbc);
       return fbc;
     }
 
-    // Função para registrar o clique na sua API Node.js/Express
-    // Agora passa fbclid e fbp para o backend
     async function registrarClick(referer, fbclid, fbp) { 
       console.log('Iniciando registro de clique...');
       console.log('Dados enviados para API:', { referer, fbclid, fbp });
@@ -103,18 +99,19 @@
           },
           body: JSON.stringify({
             referer: referer || '',
-            fbclid: fbclid || '', // Passa fbclid
-            fbp: fbp || ''       // Passa fbp
+            fbclid: fbclid || '',
+            fbp: fbp || '',
+            client_id: 'caacd295-3759-4139-bc2d-2b8e96fd3b38' // Adiciona o client_id para rastreamento
           })
         });
 
         const data = await response.json();
         console.log('Resposta da API:', data);
 
-        if (response.ok) { // Verifica se a resposta HTTP foi bem-sucedida (status 2xx)
+        if (response.ok) {
           if (data.status === 'success') {
             console.log('Registro de clique enviado com sucesso para a API. Click ID recebido:', data.click_id);
-            return data.click_id; // Retorna o click_id recebido da sua API (ex: "/start 000001")
+            return data.click_id;
           } else {
             console.error('Erro ao registrar click (API response):', data.message);
             return null; 
@@ -133,37 +130,31 @@
     (async function main() {
       console.log('Iniciando script principal...');
 
-      const referer = document.referrer || ''; // Captura o referer
-      const fbclid = getFbclid(); // Obtém fbclid da URL
-      const fbp = ensureFbp(); // Garante que _fbp exista
+      const referer = document.referrer || '';
+      const fbclid = getFbclid();
+      const fbp = ensureFbp();
 
-      // Garante que _fbc seja gerado e salvo se fbclid estiver presente
       if (fbclid) {
         ensureFbc(fbclid); 
       }
 
       console.log('Chamando registrarClick com referer:', referer, 'fbclid:', fbclid, 'e fbp:', fbp);
-      const click_id_from_api = await registrarClick(referer, fbclid, fbp); // Passa fbclid e fbp
+      const click_id_from_api = await registrarClick(referer, fbclid, fbp);
 
       let redirectUrl;
       if (click_id_from_api) {
-        // Remove o prefixo "/start " do click_id ANTES de codificar para a URL do Telegram.
         let cleanedClickId = click_id_from_api;
         if (cleanedClickId.startsWith('/start ')) {
             cleanedClickId = cleanedClickId.substring('/start '.length);
         }
-        // Remove quaisquer espaços extras que possam ter sobrado
         cleanedClickId = cleanedClickId.trim(); 
 
-        // Codifica o click_id numérico para URL antes de adicioná-lo ao link do Telegram
         const encodedClickId = encodeURIComponent(cleanedClickId);
-        redirectUrl = `https://t.me/${TELEGRAM_USERNAME}?start=${encodedClickId}`;
-        console.log('Click ID obtido. Redirecionando para Telegram com click_id (codificado):', redirectUrl);
+        redirectUrl = `https://t.me/joyyccejacobot?start=${encodedClickId}`; // Redireciona para o bot do CLIENTE
+        console.log('Click ID obtido. Redirecionando para Telegram do cliente com click_id (codificado):', redirectUrl);
       } else {
-        // Se não houver click_id (ex: erro na API), ainda redireciona para o Telegram
-        // Isso garante que a pressel "redirecione mais para o bot"
-        redirectUrl = `https://t.me/${TELEGRAM_USERNAME}`; 
-        console.log('Erro ao obter Click ID. Redirecionando para Telegram sem click_id:', redirectUrl);
+        redirectUrl = `https://t.me/joyyccejacobot`; 
+        console.log('Erro ao obter Click ID. Redirecionando para Telegram do cliente sem click_id:', redirectUrl);
       }
       window.location.replace(redirectUrl); 
     })();
@@ -172,7 +163,7 @@
 <body>
   <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
     <p>Redirecionando você...</p>
-    <!-- Opcional: Adicionar um pequeno spinner CSS aqui -->
   </div>
 </body>
-</html>.
+</html>
+    
