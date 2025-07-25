@@ -20,20 +20,20 @@
       s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)
     }(window, document,'script');
-    fbq('init', '1'); // Pixel ID: Pode ser do cliente ou do SaaS
+    fbq('init', '2157896137958065'); // Pixel ID: Pode ser do cliente ou do SaaS
     fbq('track', 'PageView');
   </script>
   <noscript>
     <img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=1&ev=PageView&noscript=1"/>
+      src="https://www.facebook.com/tr?id=2157896137958065&ev=PageView&noscript=1"/>
   </noscript>
   <!-- End Meta Pixel Code -->
 
   <script>
     // URL da sua API de rastreamento de leads (Node.js) para registrar cliques
-    const API_URL = 'https://lead-tracker-api-production.up.railway.app/api/registerClick'; 
+    const API_URL = 'lead-tracker-api-production.up.railway.app/api/registerClick'; 
     
-    const TELEGRAM_USERNAME = 'joyyccejacobot'; // Nome de usuário do bot Telegram do CLIENTE
+    const TELEGRAM_USERNAME = 'Mariaduds_bot'; // Nome de usuário do bot Telegram do CLIENTE
 
     function getCookie(name) {
       const value = `; ${document.cookie}`;
@@ -101,7 +101,7 @@
             referer: referer || '',
             fbclid: fbclid || '',
             fbp: fbp || '',
-            client_id: 'caacd295-3759-4139-bc2d-2b8e96fd3b38' // Adiciona o client_id para rastreamento
+            client_id: '84aa6407-066f-4293-b852-3bb67d323701' // Adiciona o client_id para rastreamento
           })
         });
 
@@ -150,10 +150,10 @@
         cleanedClickId = cleanedClickId.trim(); 
 
         const encodedClickId = encodeURIComponent(cleanedClickId);
-        redirectUrl = `https://t.me/joyyccejacobot?start=${encodedClickId}`; // Redireciona para o bot do CLIENTE
+        redirectUrl = `https://t.me/Mariaduds_bot?start=${encodedClickId}`; // Redireciona para o bot do CLIENTE
         console.log('Click ID obtido. Redirecionando para Telegram do cliente com click_id (codificado):', redirectUrl);
       } else {
-        redirectUrl = `https://t.me/joyyccejacobot`; 
+        redirectUrl = `https://t.me/Mariaduds_bot`; 
         console.log('Erro ao obter Click ID. Redirecionando para Telegram do cliente sem click_id:', redirectUrl);
       }
       window.location.replace(redirectUrl); 
