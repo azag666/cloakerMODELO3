@@ -66,7 +66,7 @@
 <body class="gradient-bg text-gray-200">
 
     <div id="loading-spinner" class="min-h-screen flex flex-col items-center justify-center text-center">
-        <svg class="animate-spin h-10 w-10 text-pink-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <svg class="animate-spin h-10 w-10 text-pink-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
@@ -151,7 +151,6 @@
         const SELLER_API_KEY = 'SUA_CHAVE_API_DE_VENDEDOR_AQUI';
         const CHECKOUT_ID = 1;
 
-        // BANCO DE DADOS FICTÍCIO E REGIONAL
         const mockDatabase = {
             mainModel: {
                 name: 'Juliana, 24', bio: 'Universitária, apaixonada por conversas inteligentes e momentos inesquecíveis...', price: '€ 13,00', reviews: '28 Avaliações', mainImage: 'https://placehold.co/600x800/2D3748/E9D8FD?text=Juliana', address: 'Rua das Flores Secretas, 123 - Centro\n(Apto 45 - Interfone: 1234)', gallery: ['https://placehold.co/400x400/C53030/FFFFFF?text=Foto+1','https://placehold.co/400x400/2C5282/FFFFFF?text=Foto+2','https://placehold.co/400x400/2F855A/FFFFFF?text=Foto+3','https://placehold.co/400x400/805AD5/FFFFFF?text=V%C3%ADdeo+1','https://placehold.co/400x400/D69E2E/FFFFFF?text=Foto+4','https://placehold.co/400x400/DD6B20/FFFFFF?text=Foto+5'], 
@@ -173,16 +172,25 @@
                     { name: 'Isabela R.', distance: 'Ipanema', image: 'https://placehold.co/80x80/D53F8C/FFFFFF?text=I' },
                     { name: 'Luana G.', distance: 'Barra da Tijuca', image: 'https://placehold.co/80x80/805AD5/FFFFFF?text=L' }
                 ]
+            },
+            stateToCityMap: {
+                'Parana': 'Curitiba',
+                'Rio de Janeiro': 'Rio de Janeiro',
+                'Sao Paulo': 'São Paulo'
             }
         };
+        
+        mockDatabase.regionalModels['Pinhais'] = mockDatabase.regionalModels['Curitiba'];
+        mockDatabase.regionalModels['São Caetano do Sul'] = mockDatabase.regionalModels['São Paulo'];
+        mockDatabase.regionalModels['Niterói'] = mockDatabase.regionalModels['Rio de Janeiro'];
+
 
         document.addEventListener('DOMContentLoaded', () => {
             const mainModel = mockDatabase.mainModel;
 
             const initializePage = async () => {
-                let userLocation = { city: 'São Paulo', region: 'SP' }; // Default
+                let userLocation = { city: 'São Paulo', region: 'Sao Paulo', region_code: 'SP' }; // Default
                 try {
-                    // Tenta registar o clique, mas não bloqueia o carregamento
                     fetch(`${API_BASE_URL}/registerClick`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sellerApiKey: SELLER_API_KEY, checkoutId: CHECKOUT_ID, user_agent: navigator.userAgent }) })
                         .then(res => res.ok ? console.log('Clique registado.') : console.warn('Falha ao registar o clique.'))
                         .catch(err => console.error('Erro ao registar clique:', err));
@@ -190,11 +198,27 @@
                     const geoResponse = await fetch('https://ipapi.co/json/');
                     if (geoResponse.ok) { 
                         const geoData = await geoResponse.json(); 
-                        if (geoData.city) userLocation = { city: geoData.city, region: geoData.region_code }; 
+                        if (geoData.city) {
+                             userLocation = { 
+                                city: geoData.city, 
+                                region: geoData.region,
+                                region_code: geoData.region_code 
+                            };
+                        }
                     } else { console.warn('Falha ao obter localização.'); }
                 } catch (error) { console.error("Erro na inicialização:", error); } 
                 finally {
-                    const regionalModels = mockDatabase.regionalModels[userLocation.city] || mockDatabase.regionalModels['São Paulo'];
+                    let contentCityKey = userLocation.city;
+                    if (!mockDatabase.regionalModels[contentCityKey]) {
+                        const mappedCity = mockDatabase.stateToCityMap[userLocation.region];
+                        if (mappedCity) {
+                            contentCityKey = mappedCity;
+                        } else {
+                            contentCityKey = 'São Paulo';
+                        }
+                    }
+                    
+                    const regionalModels = mockDatabase.regionalModels[contentCityKey];
                     populateUI(mainModel, userLocation);
                     populateModelsList('other-models-preview', regionalModels, true);
                     setupCalendar(mainModel.availableSlots);
@@ -224,7 +248,7 @@
             const populateUI = (model, location) => {
                 document.getElementById('model-main-image').src = model.mainImage;
                 document.getElementById('model-name').textContent = model.name;
-                const locationString = `${location.city}, ${location.region || ''}`.replace(/, $/,'');
+                const locationString = `${location.city}, ${location.region_code || ''}`.replace(/, $/,'');
                 document.getElementById('model-location').textContent = locationString;
                 document.getElementById('map-location-text').textContent = location.city;
                 document.getElementById('model-reviews').textContent = `(${model.reviews})`;
