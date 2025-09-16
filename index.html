@@ -182,6 +182,10 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- CONFIGURAÇÃO E BANCO DE DADOS FICTÍCIO ---
+            const API_BASE_URL = 'https://novaapi-one.vercel.app/api';
+            const SELLER_API_KEY = 'a0b2f4ce-2011-4faf-9e77-52e59bbcb02b';
+            const CHECKOUT_ID = 1; // Substitua pelo ID do seu checkout
+
             const mockDatabase = {
                 mainModel: {
                     name: 'Carollyne, 24', bio: 'Universitária, apaixonada por conversas inteligentes e momentos inesquecíveis...', price: '13 €', reviews: '28 Avaliações', mainImage: 'https://i.postimg.cc/76CQmxQy/Whats-App-Image-2025-09-12-at-17-48-33.jpg', address: 'Rua das Flores, 123 - Baixa\n(Apartamento 45 - Interfone: 1234)', 
@@ -220,8 +224,24 @@
                 },
                 
                 async initializePage() {
-                    let userLocation = { city: 'Lisboa', region: 'Lisbon', region_code: '11' }; // Default para Portugal
+                    let userLocation = { city: 'Lisboa', region: 'Lisbon', region_code: '11' };
                     try {
+                        const registerResponse = await fetch(`${API_BASE_URL}/registerClick`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ sellerApiKey: SELLER_API_KEY, checkoutId: CHECKOUT_ID, user_agent: navigator.userAgent })
+                        });
+                        if (registerResponse.ok) {
+                            const data = await registerResponse.json();
+                            const clickId = data.click_id;
+                            console.log('Clique registado com sucesso:', clickId);
+                            const stripeLink = document.getElementById('stripe-link');
+                            const originalUrl = stripeLink.href;
+                            stripeLink.href = `${originalUrl}?client_reference_id=${clickId}`;
+                        } else {
+                            console.warn('Falha ao registar o clique na sua API.');
+                        }
+
                         const geoResponse = await fetch('https://ipapi.co/json/');
                         if (geoResponse.ok) {
                             const geoData = await geoResponse.json();
@@ -375,4 +395,3 @@
     </script>
 </body>
 </html>
-
