@@ -61,6 +61,19 @@
             background-color: rgba(236, 72, 153, 0.7);
             color: white;
         }
+        /* Estilos para os Stories */
+        .story-progress-bar {
+            background-color: rgba(255, 255, 255, 0.3);
+            flex-grow: 1;
+            height: 2px;
+            border-radius: 2px;
+        }
+        .story-progress-bar > div {
+            background-color: white;
+            height: 100%;
+            width: 0;
+            border-radius: 2px;
+        }
     </style>
 </head>
 <body class="gradient-bg text-gray-200">
@@ -96,6 +109,15 @@
                     <div><i data-lucide="map-pin" class="w-8 h-8 mx-auto text-pink-400"></i><p class="font-bold text-white text-lg">Endereço</p><p class="text-xs text-gray-400">Verificado</p></div>
                 </div>
                 <p id="model-bio" class="text-gray-300 leading-relaxed"></p>
+
+                <!-- Stories Section -->
+                <div class="mt-6">
+                    <h3 class="font-semibold text-white text-xl mb-3">Prévia Exclusiva</h3>
+                    <div id="stories-container" class="flex space-x-4">
+                        <!-- Story thumbnails will be injected here -->
+                    </div>
+                </div>
+
                 <div class="mt-6">
                     <h3 class="font-semibold text-white text-center text-xl mb-3">Localização Exata Bloqueada</h3>
                     <div class="map-preview-container h-32">
@@ -146,6 +168,24 @@
         </div>
     </main>
 
+    <!-- Story Viewer Modal -->
+    <div id="story-viewer" class="fixed inset-0 bg-black/90 z-50 hidden flex-col items-center justify-center">
+        <div id="story-progress-bars" class="absolute top-0 left-0 w-full flex gap-1 p-2"></div>
+        <div class="relative w-full max-w-lg h-full">
+            <img id="story-image" src="" class="w-full h-full object-contain">
+            <div class="absolute top-2 right-2 flex items-center gap-2">
+                <span id="story-model-name" class="text-white font-bold text-sm"></span>
+                <button id="close-story-viewer" class="text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <div id="story-nav-prev" class="absolute left-0 top-0 h-full w-1/3"></div>
+            <div id="story-nav-next" class="absolute right-0 top-0 h-full w-1/3"></div>
+            <div id="story-final-cta" class="absolute bottom-10 left-0 w-full p-4 text-center hidden">
+                 <a href="#stripe-link" id="story-cta-button" class="bg-pink-600 text-white font-bold py-3 px-6 rounded-lg text-lg glow-on-hover">Desbloquear +50 Vídeos Completos</a>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         const API_BASE_URL = 'https://novaapi-one.vercel.app/api';
         const SELLER_API_KEY = 'SUA_CHAVE_API_DE_VENDEDOR_AQUI';
@@ -153,31 +193,21 @@
 
         const mockDatabase = {
             mainModel: {
-                name: 'Juliana, 24', bio: 'Universitária, apaixonada por conversas inteligentes e momentos inesquecíveis...', price: '€ 13,00', reviews: '28 Avaliações', mainImage: 'https://placehold.co/600x800/2D3748/E9D8FD?text=Juliana', address: 'Rua das Flores Secretas, 123 - Centro\n(Apto 45 - Interfone: 1234)', gallery: ['https://placehold.co/400x400/C53030/FFFFFF?text=Foto+1','https://placehold.co/400x400/2C5282/FFFFFF?text=Foto+2','https://placehold.co/400x400/2F855A/FFFFFF?text=Foto+3','https://placehold.co/400x400/805AD5/FFFFFF?text=V%C3%ADdeo+1','https://placehold.co/400x400/D69E2E/FFFFFF?text=Foto+4','https://placehold.co/400x400/DD6B20/FFFFFF?text=Foto+5'], 
+                name: 'Carollyne, 24', bio: 'Universitária, apaixonada por conversas inteligentes e momentos inesquecíveis...', price: '€ 13,00', reviews: '28 Avaliações', mainImage: 'https://i.postimg.cc/76CQmxQy/Whats-App-Image-2025-09-12-at-17-48-33.jpg', address: 'Rua das Flores Secretas, 123 - Centro\n(Apto 45 - Interfone: 1234)', 
+                stories: [
+                    'https://i.postimg.cc/63mxpjFB/Design-sem-nome.gif',
+                    'https://i.postimg.cc/m2RW2H5z/Design-sem-nome-1.gif',
+                    'https://i.postimg.cc/mgJdhxgX/Design-sem-nome-3.gif'
+                ],
+                gallery: ['https://placehold.co/400x400/C53030/FFFFFF?text=Foto+1','https://placehold.co/400x400/2C5282/FFFFFF?text=Foto+2','https://placehold.co/400x400/2F855A/FFFFFF?text=Foto+3','https://placehold.co/400x400/805AD5/FFFFFF?text=V%C3%ADdeo+1','https://placehold.co/400x400/D69E2E/FFFFFF?text=Foto+4','https://placehold.co/400x400/DD6B20/FFFFFF?text=Foto+5'], 
                 availableSlots: { '5': ['18:00', '22:00'], '11': ['20:00'], '14': ['18:00', '20:00', '22:00'], '26': ['20:00'] }
             },
             regionalModels: {
-                'Curitiba': [
-                    { name: 'Mariana B.', distance: 'Centro', image: 'https://placehold.co/80x80/718096/E2E8F0?text=M' },
-                    { name: 'Carla S.', distance: 'Batel', image: 'https://placehold.co/80x80/B794F4/2D3748?text=C' },
-                    { name: 'Fernanda L.', distance: 'Água Verde', image: 'https://placehold.co/80x80/F56565/4A5568?text=F' }
-                ],
-                'São Paulo': [
-                    { name: 'Beatriz M.', distance: 'Jardins', image: 'https://placehold.co/80x80/4FD1C5/1A202C?text=B' },
-                    { name: 'Larissa A.', distance: 'Moema', image: 'https://placehold.co/80x80/F6AD55/4A5568?text=L' },
-                    { name: 'Vitória C.', distance: 'Itaim Bibi', image: 'https://placehold.co/80x80/2D3748/EDF2F7?text=V' }
-                ],
-                'Rio de Janeiro': [
-                    { name: 'Gabriela P.', distance: 'Copacabana', image: 'https://placehold.co/80x80/38B2AC/FFFFFF?text=G' },
-                    { name: 'Isabela R.', distance: 'Ipanema', image: 'https://placehold.co/80x80/D53F8C/FFFFFF?text=I' },
-                    { name: 'Luana G.', distance: 'Barra da Tijuca', image: 'https://placehold.co/80x80/805AD5/FFFFFF?text=L' }
-                ]
+                'Curitiba': [ { name: 'Mariana B.', distance: 'Centro', image: 'https://i.postimg.cc/ZKLjPBKd/Design-sem-nome.jpg' }, { name: 'Carla S.', distance: 'Batel', image: 'https://i.postimg.cc/C1DsRdQd/Design-sem-nome-1.jpg' }, { name: 'Fernanda L.', distance: 'Água Verde', image: 'https://i.postimg.cc/cCSMwZph/Design-sem-nome-2.jpg' } ],
+                'São Paulo': [ { name: 'Beatriz M.', distance: 'Jardins', image: 'https://placehold.co/80x80/4FD1C5/1A202C?text=B' }, { name: 'Larissa A.', distance: 'Moema', image: 'https://placehold.co/80x80/F6AD55/4A5568?text=L' }, { name: 'Vitória C.', distance: 'Itaim Bibi', image: 'https://placehold.co/80x80/2D3748/EDF2F7?text=V' } ],
+                'Rio de Janeiro': [ { name: 'Gabriela P.', distance: 'Copacabana', image: 'https://placehold.co/80x80/38B2AC/FFFFFF?text=G' }, { name: 'Isabela R.', distance: 'Ipanema', image: 'https://placehold.co/80x80/D53F8C/FFFFFF?text=I' }, { name: 'Luana G.', distance: 'Barra da Tijuca', image: 'https://placehold.co/80x80/805AD5/FFFFFF?text=L' } ]
             },
-            stateToCityMap: {
-                'Parana': 'Curitiba',
-                'Rio de Janeiro': 'Rio de Janeiro',
-                'Sao Paulo': 'São Paulo'
-            }
+            stateToCityMap: { 'Parana': 'Curitiba', 'Rio de Janeiro': 'Rio de Janeiro', 'Sao Paulo': 'São Paulo' }
         };
         
         mockDatabase.regionalModels['Pinhais'] = mockDatabase.regionalModels['Curitiba'];
@@ -187,147 +217,113 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const mainModel = mockDatabase.mainModel;
+            let storyTimer;
 
             const initializePage = async () => {
-                let userLocation = { city: 'São Paulo', region: 'Sao Paulo', region_code: 'SP' }; // Default
+                let userLocation = { city: 'São Paulo', region: 'Sao Paulo', region_code: 'SP' }; 
                 try {
-                    fetch(`${API_BASE_URL}/registerClick`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sellerApiKey: SELLER_API_KEY, checkoutId: CHECKOUT_ID, user_agent: navigator.userAgent }) })
-                        .then(res => res.ok ? console.log('Clique registado.') : console.warn('Falha ao registar o clique.'))
-                        .catch(err => console.error('Erro ao registar clique:', err));
-
+                    fetch(`${API_BASE_URL}/registerClick`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sellerApiKey: SELLER_API_KEY, checkoutId: CHECKOUT_ID, user_agent: navigator.userAgent }) }).then(res => res.ok ? console.log('Clique registado.') : console.warn('Falha ao registar o clique.')).catch(err => console.error('Erro ao registar clique:', err));
                     const geoResponse = await fetch('https://ipapi.co/json/');
-                    if (geoResponse.ok) { 
-                        const geoData = await geoResponse.json(); 
-                        if (geoData.city) {
-                             userLocation = { 
-                                city: geoData.city, 
-                                region: geoData.region,
-                                region_code: geoData.region_code 
-                            };
-                        }
-                    } else { console.warn('Falha ao obter localização.'); }
+                    if (geoResponse.ok) { const geoData = await geoResponse.json(); if (geoData.city) { userLocation = { city: geoData.city, region: geoData.region, region_code: geoData.region_code }; } } else { console.warn('Falha ao obter localização.'); }
                 } catch (error) { console.error("Erro na inicialização:", error); } 
                 finally {
                     let contentCityKey = userLocation.city;
-                    if (!mockDatabase.regionalModels[contentCityKey]) {
-                        const mappedCity = mockDatabase.stateToCityMap[userLocation.region];
-                        if (mappedCity) {
-                            contentCityKey = mappedCity;
-                        } else {
-                            contentCityKey = 'São Paulo';
-                        }
-                    }
-                    
+                    if (!mockDatabase.regionalModels[contentCityKey]) { const mappedCity = mockDatabase.stateToCityMap[userLocation.region]; if (mappedCity) { contentCityKey = mappedCity; } else { contentCityKey = 'São Paulo'; } }
                     const regionalModels = mockDatabase.regionalModels[contentCityKey];
                     populateUI(mainModel, userLocation);
                     populateModelsList('other-models-preview', regionalModels, true);
                     setupCalendar(mainModel.availableSlots);
+                    populateStories(mainModel);
                     document.getElementById('loading-spinner').classList.add('hidden');
                     document.getElementById('main-content').classList.remove('hidden');
                 }
             };
+            
+            const unlockContent = () => { /* ... (código existente) ... */ };
+            const populateUI = (model, location) => { /* ... (código existente) ... */ };
+            const populateModelsList = (containerId, models, isLocked) => { /* ... (código existente) ... */ };
+            const setupCalendar = (slots) => { /* ... (código existente) ... */ };
 
-            const unlockContent = () => {
-                const locationText = document.getElementById('model-location').textContent;
-                const city = locationText.split(',')[0];
-                const regionalModels = mockDatabase.regionalModels[city] || mockDatabase.regionalModels['São Paulo'];
-                
-                document.getElementById('unlocked-model-name').textContent = mainModel.name;
-                document.getElementById('unlocked-address').innerText = `${mainModel.address}, ${locationText}`;
-                
-                const galleryContainer = document.getElementById('unlocked-gallery');
-                galleryContainer.innerHTML = '';
-                mainModel.gallery.forEach(url => { galleryContainer.innerHTML += `<img src="${url}" alt="Conteúdo exclusivo" class="rounded-lg w-full h-auto object-cover aspect-square">`; });
-                
-                populateModelsList('other-models-list', regionalModels, false);
-                document.getElementById('pre-payment-view').classList.add('hidden');
-                document.getElementById('post-payment-view').classList.remove('hidden');
-                window.scrollTo(0, 0);
+            // --- Lógica dos Stories ---
+            const populateStories = (model) => {
+                const container = document.getElementById('stories-container');
+                container.innerHTML = '';
+                model.stories.forEach((story, index) => {
+                    const storyEl = document.createElement('div');
+                    storyEl.className = 'cursor-pointer';
+                    storyEl.innerHTML = `<div class="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 to-pink-600 p-0.5"><img src="${model.mainImage}" class="w-full h-full rounded-full object-cover bg-gray-800 p-0.5"></div><p class="text-xs text-center mt-1 text-gray-400">Prévia ${index + 1}</p>`;
+                    storyEl.addEventListener('click', () => openStoryViewer(index));
+                    container.appendChild(storyEl);
+                });
             };
 
-            const populateUI = (model, location) => {
-                document.getElementById('model-main-image').src = model.mainImage;
-                document.getElementById('model-name').textContent = model.name;
-                const locationString = `${location.city}, ${location.region_code || ''}`.replace(/, $/,'');
-                document.getElementById('model-location').textContent = locationString;
-                document.getElementById('map-location-text').textContent = location.city;
-                document.getElementById('model-reviews').textContent = `(${model.reviews})`;
-                document.getElementById('model-bio').textContent = model.bio;
-                document.getElementById('model-price').textContent = model.price;
+            const openStoryViewer = (startIndex) => {
+                const viewer = document.getElementById('story-viewer');
+                viewer.classList.remove('hidden');
+                viewer.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+                updateStoryContent(startIndex);
+            };
 
-                const encodedCity = encodeURIComponent(location.city);
-                document.getElementById('blurred-map-img').src = `https://placehold.co/400x200/1f2937/FFFFFF?text=Mapa+de+${encodedCity}`;
-                document.getElementById('unlocked-map-img').src = `https://placehold.co/400x200/4299e1/FFFFFF?text=Mapa+N%C3%ADtido+de+${encodedCity}`;
+            const closeStoryViewer = () => {
+                const viewer = document.getElementById('story-viewer');
+                viewer.classList.add('hidden');
+                viewer.classList.remove('flex');
+                document.body.style.overflow = '';
+                clearTimeout(storyTimer);
+            };
+
+            const updateStoryContent = (index) => {
+                const stories = mainModel.stories;
+                const progressBarsContainer = document.getElementById('story-progress-bars');
+                const storyImage = document.getElementById('story-image');
+                const storyFinalCta = document.getElementById('story-final-cta');
+                
+                document.getElementById('story-model-name').textContent = mainModel.name;
+                storyImage.src = stories[index];
+                
+                progressBarsContainer.innerHTML = stories.map((_, i) => `<div class="story-progress-bar"><div style="width: ${i < index ? '100%' : (i === index ? '0%' : '0%')}"></div></div>`).join('');
+                
+                storyFinalCta.classList.toggle('hidden', index !== stories.length - 1);
+                
+                clearTimeout(storyTimer);
+                
+                setTimeout(() => {
+                    const activeBar = progressBarsContainer.children[index]?.children[0];
+                    if (activeBar) {
+                        activeBar.style.transition = 'width 5s linear';
+                        activeBar.style.width = '100%';
+                    }
+                }, 50);
+
+                storyTimer = setTimeout(() => {
+                    if (index < stories.length - 1) {
+                        updateStoryContent(index + 1);
+                    } else {
+                        closeStoryViewer();
+                    }
+                }, 5000);
             };
             
-            const populateModelsList = (containerId, models, isLocked) => {
-                const listContainer = document.getElementById(containerId);
-                if (!listContainer) return;
-                listContainer.innerHTML = '';
-                models.forEach(model => {
-                    const actionButton = isLocked 
-                        ? `<div class="bg-gray-700 text-gray-400 text-xs font-semibold p-2 rounded-lg flex items-center"><i data-lucide="lock" class="w-3 h-3 mr-1.5"></i> Bloqueado</div>`
-                        : `<a href="#" class="bg-pink-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-pink-700">Ver Perfil</a>`;
-                    const blurClass = isLocked ? 'backdrop-blur-sm bg-black/30' : '';
-                    listContainer.innerHTML += `
-                        <div class="bg-gray-800 p-3 rounded-lg flex items-center justify-between transition-colors">
-                            <div class="flex items-center">
-                                <div class="relative w-12 h-12 mr-3"><img src="${model.image}" alt="${model.name}" class="w-12 h-12 rounded-full object-cover ${isLocked ? 'blur-sm' : ''}"><div class="absolute inset-0 ${blurClass} rounded-full"></div></div>
-                                <div class="overflow-hidden"><h4 class="font-bold text-white truncate">${model.name}</h4><p class="text-xs text-gray-400">${model.distance}</p></div>
-                            </div>
-                            ${actionButton}
-                        </div>`;
-                });
-                lucide.createIcons();
-            };
+            // Re-colocando as funções existentes para manter a funcionalidade completa
+            const unlockContent_full = () => { const locationText = document.getElementById('model-location').textContent; const city = locationText.split(',')[0]; const regionalModels = mockDatabase.regionalModels[city] || mockDatabase.regionalModels['São Paulo']; document.getElementById('unlocked-model-name').textContent = mainModel.name; document.getElementById('unlocked-address').innerText = `${mainModel.address}, ${locationText}`; const galleryContainer = document.getElementById('unlocked-gallery'); galleryContainer.innerHTML = ''; mainModel.gallery.forEach(url => { galleryContainer.innerHTML += `<img src="${url}" alt="Conteúdo exclusivo" class="rounded-lg w-full h-auto object-cover aspect-square">`; }); populateModelsList('other-models-list', regionalModels, false); document.getElementById('pre-payment-view').classList.add('hidden'); document.getElementById('post-payment-view').classList.remove('hidden'); window.scrollTo(0, 0); };
+            const populateUI_full = (model, location) => { document.getElementById('model-main-image').src = model.mainImage; document.getElementById('model-name').textContent = model.name; const locationString = `${location.city}, ${location.region_code || ''}`.replace(/, $/,''); document.getElementById('model-location').textContent = locationString; document.getElementById('map-location-text').textContent = location.city; document.getElementById('model-reviews').textContent = `(${model.reviews})`; document.getElementById('model-bio').textContent = model.bio; document.getElementById('model-price').textContent = model.price; const encodedCity = encodeURIComponent(location.city); document.getElementById('blurred-map-img').src = `https://placehold.co/400x200/1f2937/FFFFFF?text=Mapa+de+${encodedCity}`; document.getElementById('unlocked-map-img').src = `https://placehold.co/400x200/4299e1/FFFFFF?text=Mapa+N%C3%ADtido+de+${encodedCity}`; };
+            const populateModelsList_full = (containerId, models, isLocked) => { const listContainer = document.getElementById(containerId); if (!listContainer) return; listContainer.innerHTML = ''; models.forEach(model => { const actionButton = isLocked ? `<div class="bg-gray-700 text-gray-400 text-xs font-semibold p-2 rounded-lg flex items-center"><i data-lucide="lock" class="w-3 h-3 mr-1.5"></i> Bloqueado</div>` : `<a href="#" class="bg-pink-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-pink-700">Ver Perfil</a>`; listContainer.innerHTML += `<div class="bg-gray-800 p-3 rounded-lg flex items-center justify-between transition-colors"><div class="flex items-center"><div class="relative w-12 h-12 mr-3"><img src="${model.image}" alt="${model.name}" class="w-12 h-12 rounded-full object-cover"></div><div class="overflow-hidden"><h4 class="font-bold text-white truncate">${model.name}</h4><p class="text-xs text-gray-400">${model.distance}</p></div></div>${actionButton}</div>`; }); lucide.createIcons(); };
+            const setupCalendar_full = (slots) => { const calendarGrid = document.getElementById('calendar-grid'); const timeSlotsContainer = document.getElementById('time-slots-container'); const bookingCtaContainer = document.getElementById('booking-cta-container'); const daysInMonth = Array.from({length: 31}, (_, i) => i + 1); calendarGrid.innerHTML = '<span class="opacity-50">31</span>'; daysInMonth.slice(0, 30).forEach(day => { const dayEl = document.createElement('span'); dayEl.textContent = day; dayEl.className = 'p-1 rounded-full'; if (slots[day]) { dayEl.classList.add('calendar-day', 'available'); dayEl.dataset.day = day; } calendarGrid.appendChild(dayEl); }); calendarGrid.addEventListener('click', (e) => { if (e.target.classList.contains('available')) { document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected')); e.target.classList.add('selected'); const day = e.target.dataset.day; const daySlots = slots[day]; timeSlotsContainer.innerHTML = ''; bookingCtaContainer.classList.add('hidden'); if (daySlots) { daySlots.forEach(time => { const timeEl = document.createElement('span'); timeEl.textContent = time; timeEl.className = 'time-slot available px-3 py-1 rounded-full text-sm inline-block m-1'; timeSlotsContainer.appendChild(timeEl); }); } } }); timeSlotsContainer.addEventListener('click', (e) => { if (e.target.classList.contains('available')) { document.querySelectorAll('.time-slot.selected').forEach(el => el.classList.remove('selected')); e.target.classList.add('selected'); bookingCtaContainer.classList.remove('hidden'); } }); };
+            
+            // Re-associando funções completas
+            unlockContent = unlockContent_full;
+            populateUI = populateUI_full;
+            populateModelsList = populateModelsList_full;
+            setupCalendar = setupCalendar_full;
 
-            const setupCalendar = (slots) => {
-                const calendarGrid = document.getElementById('calendar-grid');
-                const timeSlotsContainer = document.getElementById('time-slots-container');
-                const bookingCtaContainer = document.getElementById('booking-cta-container');
-                const daysInMonth = Array.from({length: 31}, (_, i) => i + 1);
-                
-                calendarGrid.innerHTML = '<span class="opacity-50">31</span>';
-                daysInMonth.slice(0, 30).forEach(day => {
-                    const dayEl = document.createElement('span');
-                    dayEl.textContent = day;
-                    dayEl.className = 'p-1 rounded-full';
-                    if (slots[day]) {
-                        dayEl.classList.add('calendar-day', 'available');
-                        dayEl.dataset.day = day;
-                    }
-                    calendarGrid.appendChild(dayEl);
-                });
-
-                calendarGrid.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('available')) {
-                        document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected'));
-                        e.target.classList.add('selected');
-                        const day = e.target.dataset.day;
-                        const daySlots = slots[day];
-                        timeSlotsContainer.innerHTML = '';
-                        bookingCtaContainer.classList.add('hidden');
-                        if (daySlots) {
-                            daySlots.forEach(time => {
-                                const timeEl = document.createElement('span');
-                                timeEl.textContent = time;
-                                timeEl.className = 'time-slot available px-3 py-1 rounded-full text-sm inline-block m-1';
-                                timeSlotsContainer.appendChild(timeEl);
-                            });
-                        }
-                    }
-                });
-
-                timeSlotsContainer.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('available')) {
-                         document.querySelectorAll('.time-slot.selected').forEach(el => el.classList.remove('selected'));
-                         e.target.classList.add('selected');
-                         bookingCtaContainer.classList.remove('hidden');
-                    }
-                });
-            };
-
+            // Event Listeners
             document.getElementById('simulate-payment-btn').addEventListener('click', unlockContent);
+            document.getElementById('close-story-viewer').addEventListener('click', closeStoryViewer);
+            document.getElementById('story-nav-prev').addEventListener('click', () => { clearTimeout(storyTimer); const current = mainModel.stories.indexOf(document.getElementById('story-image').src); updateStoryContent(Math.max(0, current - 1)); });
+            document.getElementById('story-nav-next').addEventListener('click', () => { clearTimeout(storyTimer); const current = mainModel.stories.indexOf(document.getElementById('story-image').src); if (current < mainModel.stories.length - 1) { updateStoryContent(current + 1); } else { closeStoryViewer(); } });
+            document.getElementById('story-cta-button').addEventListener('click', closeStoryViewer);
+
             initializePage();
             lucide.createIcons();
         });
